@@ -1,0 +1,59 @@
+"""
+PsychoMirror CRM Engine - Core Analyzer
+This module performs sentiment analysis and provides 
+psychological response strategies for CRM systems.
+"""
+
+def get_psychological_analysis(text):
+    # 1. Lexicon with emotional weights
+    positive_lexicon = {
+        "good": 1, "great": 2, "love": 3, "amazing": 3, 
+        "thanks": 2, "helpful": 2, "excellent": 3, "perfect": 3
+    }
+    negative_lexicon = {
+        "bad": -1, "terrible": -2, "hate": -3, "broken": -2, 
+        "worst": -3, "scam": -4, "disappointed": -2, "awful": -3
+    }
+    
+    # 2. Capitalization Intensity (Shouting Detection)
+    # If the user writes in ALL CAPS, the emotion is 1.5x stronger
+    is_shouting = text.isupper()
+    multiplier = 1.5 if is_shouting else 1.0
+    
+    score = 0
+    # Data cleaning: remove punctuation for word matching
+    clean_text = text.lower().replace("!", "").replace("?", "")
+    words = clean_text.split()
+    
+    for word in words:
+        if word in positive_lexicon:
+            score += positive_lexicon[word] * multiplier
+        elif word in negative_lexicon:
+            score += negative_lexicon[word] * multiplier
+            
+    # 3. Punctuation Emphasis (Exclamation marks increase intensity)
+    exclamation_count = text.count("!")
+    if score > 0:
+        score += exclamation_count * 0.5
+    elif score < 0:
+        score -= exclamation_count * 0.5
+
+    # 4. CRM Strategy Mapping
+    if score <= -4:
+        status = "CRITICAL: Very Dissatisfied Customer"
+        strategy = "Urgent: Immediate callback and compensation required."
+    elif -4 < score < 0:
+        status = "NEGATIVE: Complaint Detected"
+        strategy = "Empathy: Send personalized apology and resolution steps."
+    elif score == 0:
+        status = "NEUTRAL: Information Request"
+        strategy = "Engagement: Provide details and ask for follow-up."
+    else:
+        status = "POSITIVE: Satisfied Customer"
+        strategy = "Retention: Express gratitude and request a testimonial."
+
+    return {
+        "score": score,
+        "status": status,
+        "strategy": strategy
+    }
