@@ -1,20 +1,45 @@
-def analyze_sentiment(text):
-    """Simple rule-based sentiment analysis."""
-    positive_words = ["happy", "great", "love", "good", "amazing", "awesome"]
-    negative_words = ["sad", "bad", "hate", "angry", "terrible", "worst"]
+def bulk_psychological_analysis(customer_reviews):
+    """
+    Analyses multiple customer reviews at once and 
+    filters out the critical ones using Comprehensions.
+    """
+    # 1. Təməl lüğətimiz (VADER-dən ilhamlanaraq)
+    lexicon = {
+        "bad": -2, "terrible": -3, "worst": -4, "scam": -5,
+        "good": 2, "great": 3, "amazing": 4, "love": 5
+    }
+
+    # 2. Hər mesaj üçün xal hesablayan daxili funksiya
+    def get_score(text):
+        words = text.lower().replace("!", "").split()
+        # List Comprehension ilə xalları toplayırıq
+        return sum([lexicon.get(word, 0) for word in words])
+
+    # 3. DICTIONARY COMPREHENSION: Bütün müştəriləri analiz edib lüğətə yığırıq
+    # Format: {"Müştəri Mesajı": Bal}
+    analysis_results = {msg: get_score(msg) for msg in customer_reviews}
+
+    # 4. LIST COMPREHENSION: Yalnız KRİTİK (balı -3 və aşağı olan) mesajları seçirik
+    critical_alerts = [msg for msg, score in analysis_results.items() if score <= -3]
+
+    return {
+        "all_results": analysis_results,
+        "critical_cases": critical_alerts,
+        "total_analyzed": len(customer_reviews)
+    }
+
+# --- TEST ÜÇÜN ---
+if __name__ == "__main__":
+    sample_reviews = [
+        "This is the worst scam ever!",
+        "I love this service, amazing job",
+        "Terrible experience, very bad",
+        "It was a good experience"
+    ]
     
-    score = 0
-    words = text.lower().split()
+    report = bulk_psychological_analysis(sample_reviews)
     
-    for word in words:
-        if word in positive_words:
-            score += 1
-        elif word in negative_words:
-            score -= 1
-            
-    if score > 0:
-        return "😊 Positive Outlook"
-    elif score < 0:
-        return "😔 Negative Outlook"
-    else:
-        return "😐 Neutral / Complex"
+    print(f"Total Analyzed: {report['total_analyzed']}")
+    print(f"Critical Alerts Found: {len(report['critical_cases'])}")
+    for alert in report['critical_cases']:
+        print(f"⚠️ ACTION REQUIRED: {alert}")
